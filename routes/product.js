@@ -26,7 +26,7 @@ router.post("/", verifyTokenAdmin, upload.array("image"), async (req, res) => {
     const image = uploadResults.map((result) => {
       return { public_id: result.public_id, url: result.url };
     });
-    const newProduct = { ...req.body, image: image, sizes: sizesArray };
+    const newProduct = { ...req.body, image: image };
     const savedProduct = await saveProduct(newProduct);
     console.log(savedProduct);
     res.json({

@@ -1,9 +1,9 @@
 const Product = require("../models/Product");
 const Admin = require("../models/Admin");
 const router = require("express").Router();
-const cloudinary = require('../utils/cloudinary');
-const {verifyTokenAdmin} = require("./verifyToken");
-const multer = require('multer');
+const cloudinary = require("../utils/cloudinary");
+const { verifyTokenAdmin } = require("./verifyToken");
+const multer = require("multer");
 const storage = multer.memoryStorage();
 const upload = multer({ dest: "../uploads" });
 const { uploader } = require("../utils/cloudinary");
@@ -13,29 +13,27 @@ const saveProduct = async (product) => {
   const savedProduct = await newProduct.save();
   console.log(savedProduct);
   return savedProduct;
-}
+};
 
 //add product
 router.post("/", verifyTokenAdmin, upload.array("image"), async (req, res) => {
   try {
-    const sizesArray = req.body.sizes.split(',').map(size => size.trim());
-    const uploadPromises = req.files.map(async file => {
+    const uploadPromises = req.files.map(async (file) => {
       const result = await cloudinary.uploader.upload(file.path);
       return result;
     });
     const uploadResults = await Promise.all(uploadPromises);
-    const image = uploadResults.map(result => {
-      return {public_id:result.public_id, url:result.url}
+    const image = uploadResults.map((result) => {
+      return { public_id: result.public_id, url: result.url };
     });
-    const newProduct = {...req.body, image: image, sizes: sizesArray};
+    const newProduct = { ...req.body, image: image, sizes: sizesArray };
     const savedProduct = await saveProduct(newProduct);
     console.log(savedProduct);
     res.json({
       message: "Images uploaded successfully",
-      product: savedProduct
+      product: savedProduct,
     });
-  } 
-  catch (err) {
+  } catch (err) {
     console.log(err);
     res.status(500).json(err);
   }
@@ -93,18 +91,18 @@ router.get("/", async (req, res) => {
 
 //get product and user data;
 router.get("/stats", verifyTokenAdmin, async (req, res) => {
-    try {
-      // return count of all users, products, orders in a single object
-      const admin = await Admin.countDocuments({ isAdmin: false });
-      const products = await Product.countDocuments();
-      const data = {
-        admin,
-        products,
-      };
-      res.status(200).json(data);
-    } catch (err) {
-      res.status(500).json(err);
-    }
-  });
+  try {
+    // return count of all users, products, orders in a single object
+    const admin = await Admin.countDocuments({ isAdmin: false });
+    const products = await Product.countDocuments();
+    const data = {
+      admin,
+      products,
+    };
+    res.status(200).json(data);
+  } catch (err) {
+    res.status(500).json(err);
+  }
+});
 
 module.exports = router;
